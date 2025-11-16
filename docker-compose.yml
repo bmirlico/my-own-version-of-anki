@@ -1,0 +1,101 @@
+# Définition des services (containers)
+services:
+
+  # ==========================================
+  # Service 1 : PostgreSQL Database
+  # ==========================================
+  postgres:
+    # Image officielle PostgreSQL 15 (alpine = version légère)
+    image: postgres:15-alpine
+
+    # Nom du container (facilite l'accès via docker ps)
+    container_name: flashcards-postgres
+
+    # Charger toutes les variables depuis .env
+    env_file:
+      - .env
+
+    # Variables d'environnement pour configurer PostgreSQL
+    # Héritées depuis .env via env_file ci-dessus
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    # Mapping de ports : HOST:CONTAINER
+    # Port 5432 de votre machine → Port 5432 du container
+    # Vous pouvez accéder à la DB sur localhost:5432
+    ports:
+      - "5432:5432"
+
+    # Volumes pour persister les données
+    # postgres_data = volume Docker (survit à la suppression du container)
+    # /var/lib/postgresql/data = dossier PostgreSQL dans le container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # Health check : vérifie que PostgreSQL est prêt
+    # pg_isready = commande pour tester la connexion
+    # Le backend attend que ce check passe avant de démarrer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s      # Teste toutes les 5 secondes
+      timeout: 5s       # Timeout après 5 secondes
+      retries: 5        # Essaie 5 fois avant de considérer comme "unhealthy"
+
+    # Redémarre automatiquement en cas de crash
+    restart: unless-stopped
+
+  # ==========================================
+  # Service 2 : FastAPI Backend
+  # ==========================================
+  backend:
+    # Build l'image depuis le Dockerfile dans ./backend/
+    build:
+      context: ./backend     # Dossier contenant le Dockerfile
+      dockerfile: Dockerfile # Nom du fichier (optionnel si "Dockerfile")
+
+    # Nom du container
+    container_name: flashcards-backend
+
+    # Charger toutes les variables depuis .env
+    env_file:
+      - .env
+
+    # Variables d'environnement injectées dans le container
+    # Ces variables sont lues par app/core/config.py
+    environment:
+      # IMPORTANT : POSTGRES_HOST = "postgres" (nom du service Docker)
+      # Override la valeur par défaut "localhost" de config.py
+      # Car dans Docker, les services communiquent par leur nom, pas "localhost"
+      POSTGRES_HOST: postgres
+
+    # Mapping de ports
+    # Port 8000 de votre machine → Port 8000 du container
+    # Accès à l'API : http://localhost:8000
+    ports:
+      - "8000:8000"
+
+    # Dépendances : attend que postgres soit "healthy"
+    # Évite les erreurs "cannot connect to database" au démarrage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # Bind mount : synchronise ./backend avec /app dans le container
+    # Quand vous modifiez un fichier Python, le container le voit
+    # Uvicorn --reload redémarre automatiquement l'app
+    volumes:
+      - ./backend:/app
+
+    # Redémarre automatiquement
+    restart: unless-stopped
+
+# ==========================================
+# Volumes nommés (persistent storage)
+# ==========================================
+volumes:
+  postgres_data:
+    # Volume pour les données PostgreSQL
+    # Survit à docker-compose down
+    # Supprimé uniquement avec docker-compose down -v

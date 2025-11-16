@@ -531,3 +531,18 @@ docker-compose up -d
 6. Dockeriser l'application
 7. Déployer sur VPS
 8. Configurer CI/CD
+
+# Questions
+- class Config: from_attributes: true ?
+- later implement httonly cookie in front: https://fastapitutorial.medium.com/fastapi-securing-jwt-token-with-httponly-cookie-47e0139b8dde
+- hot reload dans un container fonctionne ?
+- postico dl via brew ou en ligne ?
+- ps aux ?
+- docker ps
+- quand dois je rebuild l'image docker ?
+
+
+# References
+- https://www.freecodecamp.org/news/deploy-fastapi-postgresql-app-on-render/
+- https://www.freecodecamp.org/news/how-to-add-jwt-authentication-in-fastapi/
+
