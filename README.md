@@ -539,7 +539,7 @@ docker-compose up -d
 - postico dl via brew ou en ligne ?
 - ps aux ?
 - docker ps
-- quand dois je rebuild l'image docker ?
+- quand dois je rebuild l'image docker ? dans le cas où j'ajoute une lib dans requirement.txt
 
 
 # References
