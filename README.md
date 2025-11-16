@@ -4,11 +4,48 @@ Une application web de flashcards pour l'apprentissage et la mémorisation, insp
 
 ## Stack Technique
 
-- **Backend** : FastAPI + Pydantic + PostgreSQL
-- **Frontend** : React + Vite
-- **Déploiement** : Docker + VPS Hostinger
-- **Auth** : JWT tokens
-- **State Management** : Zustand
+### Backend
+- **Framework** : FastAPI + Pydantic
+- **Database** : PostgreSQL (Dockerized)
+- **Auth** : JWT tokens (24h expiration)
+- **ORM** : SQLAlchemy
+- **Password Hashing** : Bcrypt
+
+### Frontend (Approche Progressive)
+
+**Phase 1 - Fondamentaux** (Démarrage) :
+- **Framework** : React 18 + Vite
+- **Styling** : Tailwind CSS
+- **Routing** : React Router v6
+- **HTTP Client** : Axios
+- **UI State Management** : Zustand (auth, modals, UI state)
+- **Data Fetching** : useState + useEffect + Axios (manuel, pas de TanStack Query)
+
+**Pourquoi cette approche ?**
+- **Zustand** : Gérer proprement l'état UI (auth, modals) sans complexité de Redux
+- **Data fetching manuel** : Comprendre les concepts fondamentaux (loading, error, data states)
+- Gérer manuellement les side effects avec useEffect
+- Voir concrètement les problèmes (race conditions, stale data, cache)
+- Apprentissage en profondeur pour améliorer les compétences en CS
+
+**Séparation claire** :
+- Zustand → UI state (authentification, modals ouvertes/fermées, etc.)
+- useState/useEffect → Server state (flashcards, catégories depuis l'API)
+
+**Phase 2 - Optimisation** (Après 2-3 semaines) :
+- **Migration vers TanStack Query** pour le data fetching uniquement
+- Refactoring progressif du code manuel vers TanStack Query
+- Appréciation des avantages (cache intelligent, refetch automatique, optimistic updates)
+- **Zustand reste** pour l'UI state
+
+**TanStack Router** : Non utilisé (overkill pour 3-4 routes simples)
+
+### Déploiement
+- **Containerization** : Docker + Docker Compose
+- **VPS** : Hostinger
+- **Reverse Proxy** : Nginx (production uniquement)
+- **SSL** : Let's Encrypt
+- **CI/CD** : GitHub Actions (Phase 2)
 
 ---
 
@@ -540,6 +577,7 @@ docker-compose up -d
 - ps aux ?
 - docker ps
 - quand dois je rebuild l'image docker ? dans le cas où j'ajoute une lib dans requirement.txt
+- pourquoi mettre des _init__py dans les packages / folders python ?
 
 
 # References
