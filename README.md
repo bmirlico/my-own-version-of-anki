@@ -571,7 +571,7 @@ docker-compose up -d
 
 # Questions
 - class Config: from_attributes: true ?
-- later implement httonly cookie in front: https://fastapitutorial.medium.com/fastapi-securing-jwt-token-with-httponly-cookie-47e0139b8dde
+- implement later httonly cookie in front and back for secure auth: https://fastapitutorial.medium.com/fastapi-securing-jwt-token-with-httponly-cookie-47e0139b8dde
 - hot reload dans un container fonctionne ?
 - postico dl via brew ou en ligne ?
 - ps aux ?
