@@ -1,18 +1,63 @@
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from './store/authStore'
+
+// Pages (on va les créer juste après)
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
+
+/**
+ * App - Composant racine de l'application
+ *
+ * Configure React Router et initialise l'authentification
+ */
 function App() {
+  const { initializeAuth, isAuthenticated } = useAuthStore()
+
+  /**
+   * useEffect qui s'exécute au démarrage de l'app
+   * Restaure la session depuis localStorage si l'utilisateur était connecté
+   */
+  useEffect(() => {
+    initializeAuth()
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-blue-600 mb-4">
-          Flashcards App
-        </h1>
-        <p className="text-gray-600">
-          Tailwind CSS is working! 🎉
-        </p>
-        <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-          Test Button
-        </button>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Route racine : redirige selon l'état d'authentification */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Routes publiques (accessible sans être connecté) */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Routes protégées (accessible uniquement si connecté) */}
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated ? (
+              <DashboardPage />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Route 404 : toutes les autres URLs */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

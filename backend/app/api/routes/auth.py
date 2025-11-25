@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
@@ -53,18 +54,18 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     Se connecter et obtenir un JWT token
 
     Process:
-        1. Vérifier que l'email existe
+        1. Vérifier que l'email existe (username = email pour OAuth2)
         2. Vérifier que le password est correct
         3. Créer un JWT token avec user_id
         4. Retourner le token
 
     Args:
-        user_credentials: {"email": "user@example.com", "password": "mypassword"}
+        form_data: OAuth2 form avec username (=email) et password
 
     Returns:
         Token: {"access_token": "eyJhbGc...", "token_type": "bearer"}
@@ -72,11 +73,11 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     Raises:
         401: Si email ou password incorrect
     """
-    # Trouver le user par email
-    user = db.query(User).filter(User.email == user_credentials.email).first()
+    # OAuth2 utilise "username", on le mappe à "email"
+    user = db.query(User).filter(User.email == form_data.username).first()
 
     # Vérifier user existe et password correct
-    if not user or not verify_password(user_credentials.password, user.hashed_password):
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -101,3 +102,21 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
         UserResponse: Info du user connecté
     """
     return current_user
+
+@router.get("/users")
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return users
+
+@router.delete("/user/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    to_delete = db.query(User).filter(User.id == user_id).first()
+
+    if not to_delete:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    db.delete(to_delete)
+    db.commit()

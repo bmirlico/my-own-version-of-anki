@@ -39,15 +39,24 @@ export const useAuthStore = create<AuthStore>((set) => ({
   /**
    * Login - Authentifier un utilisateur
    *
-   * 1. Envoie email + password au backend
+   * 1. Envoie username (=email) + password au backend en form-data
    * 2. Reçoit un token JWT
    * 3. Récupère les infos utilisateur
    * 4. Stocke token + user dans localStorage ET dans le store
    */
   login: async (credentials: UserLogin) => {
     try {
-      // Étape 1 : Envoyer les credentials au backend
-      const tokenResponse = await api.post<Token>('/auth/login', credentials)
+      // Étape 1 : Créer FormData pour OAuth2 (username = email)
+      const formData = new FormData()
+      formData.append('username', credentials.email) // OAuth2 utilise "username"
+      formData.append('password', credentials.password)
+
+      // Envoyer en form-data (pas JSON)
+      const tokenResponse = await api.post<Token>('/auth/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
       const token = tokenResponse.data.access_token
 
       // Étape 2 : Stocker le token dans localStorage

@@ -578,6 +578,7 @@ docker-compose up -d
 - docker ps
 - quand dois je rebuild l'image docker ? dans le cas où j'ajoute une lib dans requirement.txt
 - pourquoi mettre des _init__py dans les packages / folders python ?
+- bien comprendre le forwardRef dans le component input
 
 
 # References
