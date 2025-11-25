@@ -100,11 +100,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       // Créer le compte
       await api.post('/auth/register', userData)
 
-      // Connecter automatiquement après inscription
-      await useAuthStore.getState().login({
-        email: userData.email,
-        password: userData.password,
-      })
     } catch (error) {
       throw error
     }
