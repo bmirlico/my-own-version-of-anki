@@ -78,6 +78,12 @@ export const router = createBrowserRouter([
       //   path: '/settings',
       //   element: <SettingsPage />,
       // },
+      // Pour tester la préservation de l'URL :
+      // 1. Déconnecte-toi
+      // 2. Va sur http://localhost:5173/dashboard dans la barre d'adresse
+      // 3. Tu es redirigé vers /login
+      // 4. Connecte-toi
+      // 5. Tu reviens sur /dashboard (pas /dashboard par hasard, c'était ton intention !)
     ],
   },
 

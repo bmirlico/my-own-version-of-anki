@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuthStore } from '../store/authStore'
@@ -12,6 +12,7 @@ import Input from '../components/Input'
  */
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuthStore()
 
   // État pour l'erreur globale (erreur API)
@@ -53,6 +54,10 @@ function LoginPage() {
    * - Cette fonction N'EST APPELÉE QUE si la validation Zod réussit !
    * - Si validation échoue, react-hook-form bloque automatiquement
    * - `data` est typé automatiquement comme LoginFormData
+   *
+   * Amélioration UX : Préserve l'intention de navigation
+   * - Si l'utilisateur essayait d'accéder à une route protégée (ex: /settings),
+   *   il sera redirigé vers cette route après login (pas /dashboard)
    */
   const onSubmit = async (data: LoginFormData) => {
     // Réinitialiser l'erreur API
@@ -62,8 +67,13 @@ function LoginPage() {
       // Appeler le store Zustand pour login
       await login(data)
 
-      // Si succès, rediriger vers dashboard
-      navigate('/dashboard')
+      // Récupérer l'URL d'origine (sauvegardée par ProtectedRoute)
+      // Si l'utilisateur vient d'une route protégée, on l'y renvoie
+      // Sinon, on va sur /dashboard par défaut
+      const from = location.state?.from?.pathname || '/dashboard'
+
+      // Rediriger vers l'URL d'origine ou /dashboard
+      navigate(from, { replace: true })
     } catch (err: any) {
       // Afficher l'erreur retournée par l'API
       const errorMessage =
