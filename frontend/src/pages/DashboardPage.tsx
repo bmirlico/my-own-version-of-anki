@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
-import { getFlashcards } from '../services/flashcardsService'
-import type { FlashCard } from '../types'
+import { getFlashcards, deleteFlashcard } from '../services/flashcardsService'
+import type { FlashCard as FlashCardType } from '../types'
 import Button from '../components/Button'
 import Card from '../components/Card'
+import FlashCard from '../components/FlashCard'
 import CreateFlashcardModal from '../components/CreateFlashcardModal'
+import EditFlashcardModal from '../components/EditFlashcardModal'
+import CreateCategoryModal from '../components/CreateCategoryModal'
 
 /**
  * DashboardPage - Page principale de l'application
@@ -18,12 +21,14 @@ function DashboardPage() {
   const { user, logout } = useAuthStore()
 
   // États pour les flashcards
-  const [flashcards, setFlashcards] = useState<FlashCard[]>([])
+  const [flashcards, setFlashcards] = useState<FlashCardType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // État pour le modal de création
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  // États pour les modals
+  const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false)
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [editingFlashcard, setEditingFlashcard] = useState<FlashCardType | null>(null)
 
   /**
    * Fonction pour charger les flashcards
@@ -55,6 +60,29 @@ function DashboardPage() {
     loadFlashcards()
   }, []) // [] = s'exécute une seule fois au montage
 
+  /**
+   * Handler pour éditer une flashcard
+   */
+  const handleEdit = (flashcard: FlashCardType) => {
+    setEditingFlashcard(flashcard)
+    // Le modal d'édition s'ouvrira automatiquement car editingFlashcard !== null
+  }
+
+  /**
+   * Handler pour supprimer une flashcard
+   */
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteFlashcard(id)
+      // Recharger la liste après suppression
+      loadFlashcards()
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.detail || 'Failed to delete flashcard'
+      alert(`Error: ${errorMessage}`)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header / Navbar */}
@@ -68,8 +96,11 @@ function DashboardPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
-              <Button onClick={() => setIsModalOpen(true)} size="sm">
+            <div className="flex items-center gap-3">
+              <Button onClick={() => setIsCategoryModalOpen(true)} variant="secondary" size="sm">
+                Create Category
+              </Button>
+              <Button onClick={() => setIsFlashcardModalOpen(true)} size="sm">
                 Create Flashcard
               </Button>
               <Button onClick={logout} variant="secondary" size="sm">
@@ -118,36 +149,39 @@ function DashboardPage() {
             {/* Grille de flashcards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {flashcards.map((card) => (
-                <Card key={card.id} hover>
-                  {/* Question */}
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-1">Question</p>
-                    <p className="text-gray-800 font-medium">{card.question}</p>
-                  </div>
-
-                  {/* Answer */}
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Answer</p>
-                    <p className="text-gray-600">{card.answer}</p>
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-400">
-                      Category ID: {card.category_id}
-                    </p>
-                  </div>
-                </Card>
+                <FlashCard
+                  key={card.id}
+                  flashcard={card}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           </div>
         )}
       </main>
 
-      {/* Modal de création de flashcard */}
+      {/* Modals */}
+      <CreateCategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        onSuccess={() => {
+          // Callback appelé après création réussie
+          // Pour l'instant, on ne fait rien car on n'affiche pas la liste des catégories
+          // Plus tard, tu pourras recharger la liste si tu l'affiches
+          console.log('Category created successfully!')
+        }}
+      />
+
       <CreateFlashcardModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isFlashcardModalOpen}
+        onClose={() => setIsFlashcardModalOpen(false)}
+        onSuccess={loadFlashcards}
+      />
+
+      <EditFlashcardModal
+        flashcard={editingFlashcard}
+        onClose={() => setEditingFlashcard(null)}
         onSuccess={loadFlashcards}
       />
     </div>

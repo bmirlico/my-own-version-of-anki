@@ -579,6 +579,7 @@ docker-compose up -d
 - quand dois je rebuild l'image docker ? dans le cas où j'ajoute une lib dans requirement.txt
 - pourquoi mettre des _init__py dans les packages / folders python ?
 - bien comprendre le forwardRef dans le component input
+- pourquoi besoin de faire ça en react:  const data = await getFlashcards(); setFlashcards(data)
 
 # Notes
 Avec reload (F5 ou refresh)

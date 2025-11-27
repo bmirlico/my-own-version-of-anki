@@ -2,33 +2,37 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { flashcardSchema, type FlashcardFormData } from '../types/schemas'
-import { createFlashcard } from '../services/flashcardsService'
+import { updateFlashcard } from '../services/flashcardsService'
 import { getCategories } from '../services/categoriesService'
-import type { Category } from '../types'
+import type { Category, FlashCard } from '../types'
 import Modal from './Modal'
 import Button from './Button'
 
 /**
- * Props du composant CreateFlashcardModal
+ * Props du composant EditFlashcardModal
  */
-interface CreateFlashcardModalProps {
-  isOpen: boolean
+interface EditFlashcardModalProps {
+  flashcard: FlashCard | null
   onClose: () => void
-  onSuccess: () => void // Callback appelé après création réussie
+  onSuccess: () => void // Callback appelé après mise à jour réussie
 }
 
 /**
- * CreateFlashcardModal - Modal pour créer une nouvelle flashcard
+ * EditFlashcardModal - Modal pour éditer une flashcard existante
  *
- * Utilise react-hook-form + Zod pour la validation
+ * Similaire à CreateFlashcardModal mais :
+ * - Pré-remplit les champs avec les données existantes
+ * - Utilise updateFlashcard au lieu de createFlashcard
  */
-function CreateFlashcardModal({
-  isOpen,
+function EditFlashcardModal({
+  flashcard,
   onClose,
   onSuccess,
-}: CreateFlashcardModalProps) {
+}: EditFlashcardModalProps) {
   const [categories, setCategories] = useState<Category[]>([])
   const [apiError, setApiError] = useState('')
+
+  const isOpen = flashcard !== null
 
   /**
    * Charger les catégories quand le modal s'ouvre
@@ -38,6 +42,19 @@ function CreateFlashcardModal({
       loadCategories()
     }
   }, [isOpen])
+
+  /**
+   * Pré-remplir le formulaire quand flashcard change
+   */
+  useEffect(() => {
+    if (flashcard) {
+      reset({
+        question: flashcard.question,
+        answer: flashcard.answer,
+        category_id: flashcard.category_id,
+      })
+    }
+  }, [flashcard])
 
   /**
    * Charger la liste des catégories
@@ -72,10 +89,12 @@ function CreateFlashcardModal({
    * Gérer la soumission du formulaire
    */
   const onSubmit = async (data: FlashcardFormData) => {
+    if (!flashcard) return
+
     setApiError('')
 
     try {
-      await createFlashcard(data)
+      await updateFlashcard(flashcard.id, data)
 
       // Réinitialiser le formulaire
       reset()
@@ -87,7 +106,7 @@ function CreateFlashcardModal({
       onSuccess()
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.detail || 'Failed to create flashcard'
+        err.response?.data?.detail || 'Failed to update flashcard'
       setApiError(errorMessage)
     }
   }
@@ -103,7 +122,7 @@ function CreateFlashcardModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Create Flashcard" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Edit Flashcard" size="md">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Message d'erreur API */}
         {apiError && (
@@ -200,7 +219,7 @@ function CreateFlashcardModal({
             Cancel
           </Button>
           <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting}>
-            Create
+            Update
           </Button>
         </div>
       </form>
@@ -208,4 +227,4 @@ function CreateFlashcardModal({
   )
 }
 
-export default CreateFlashcardModal
+export default EditFlashcardModal
