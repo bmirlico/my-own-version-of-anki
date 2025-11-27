@@ -83,3 +83,54 @@ export const registerSchema = z
   })
 
 export type RegisterFormData = z.infer<typeof registerSchema>
+
+/**
+ * Schéma de validation pour créer/éditer une catégorie
+ */
+export const categorySchema = z.object({
+  /**
+   * Nom de la catégorie
+   * - Au moins 1 caractère
+   * - Maximum 50 caractères (pour éviter les noms trop longs)
+   */
+  name: z
+    .string()
+    .min(1, 'Category name is required')
+    .max(50, 'Category name must be less than 50 characters'),
+})
+
+export type CategoryFormData = z.infer<typeof categorySchema>
+
+/**
+ * Schéma de validation pour créer/éditer une flashcard
+ */
+export const flashcardSchema = z.object({
+  /**
+   * Question de la flashcard
+   * - Au moins 1 caractère
+   * - On pourrait limiter à 500 caractères si besoin
+   */
+  question: z
+    .string()
+    .min(1, 'Question is required')
+    .max(500, 'Question is too long'),
+
+  /**
+   * Réponse de la flashcard
+   * - Au moins 1 caractère
+   * - On pourrait limiter à 1000 caractères si besoin
+   */
+  answer: z
+    .string()
+    .min(1, 'Answer is required')
+    .max(1000, 'Answer is too long'),
+
+  /**
+   * ID de la catégorie associée
+   * - Doit être un nombre positif
+   * - Transformation automatique de string à number si besoin
+   */
+  category_id: z.coerce.number().positive('Please select a category'),
+})
+
+export type FlashcardFormData = z.infer<typeof flashcardSchema>

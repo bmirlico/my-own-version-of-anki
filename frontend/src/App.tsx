@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './store/authStore'
+import { useAuthStore, selectIsAuthenticated } from './store/authStore'
 
-// Pages (on va les créer juste après)
+// Pages
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
@@ -10,18 +9,15 @@ import DashboardPage from './pages/DashboardPage'
 /**
  * App - Composant racine de l'application
  *
- * Configure React Router et initialise l'authentification
+ * Configure React Router et gère l'authentification
+ *
+ * Note : Plus besoin de useEffect pour initializeAuth() !
+ * Le middleware persist de Zustand hydrate automatiquement le state
+ * depuis localStorage AVANT le premier render.
  */
 function App() {
-  const { initializeAuth, isAuthenticated } = useAuthStore()
-
-  /**
-   * useEffect qui s'exécute au démarrage de l'app
-   * Restaure la session depuis localStorage si l'utilisateur était connecté
-   */
-  useEffect(() => {
-    initializeAuth()
-  }, [])
+  // Utilise le selector pour dériver isAuthenticated de user !== null
+  const isAuthenticated = useAuthStore(selectIsAuthenticated)
 
   return (
     <BrowserRouter>
@@ -39,8 +35,27 @@ function App() {
         />
 
         {/* Routes publiques (accessible sans être connecté) */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Si déjà authentifié, rediriger vers dashboard */}
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <LoginPage />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <RegisterPage />
+            )
+          }
+        />
 
         {/* Routes protégées (accessible uniquement si connecté) */}
         <Route

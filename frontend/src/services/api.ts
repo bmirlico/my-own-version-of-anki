@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '../store/authStore'
 
 /**
  * Axios instance configurée pour communiquer avec l'API backend
@@ -20,11 +21,15 @@ const api = axios.create({
  *
  * S'exécute AVANT chaque requête envoyée au backend
  * Ajoute automatiquement le token JWT dans le header Authorization
+ *
+ * Note : Utilise useAuthStore.getState() pour accéder au store
+ * en dehors d'un composant React (pas besoin de hook ici)
  */
 api.interceptors.request.use(
   (config) => {
-    // Récupérer le token depuis localStorage
-    const token = localStorage.getItem('token')
+    // Récupérer le token depuis le store Zustand
+    // getState() permet d'accéder au store en dehors des composants React
+    const token = useAuthStore.getState().token
 
     // Si un token existe, l'ajouter au header
     if (token) {
@@ -57,9 +62,9 @@ api.interceptors.response.use(
       const status = error.response.status
 
       if (status === 401) {
-        // Non authentifié : supprimer le token et rediriger vers login
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        // Non authentifié : déconnecter l'utilisateur
+        // logout() va automatiquement nettoyer le store et localStorage (via persist)
+        useAuthStore.getState().logout()
 
         // Rediriger vers /login (sauf si on est déjà sur /login)
         if (window.location.pathname !== '/login') {

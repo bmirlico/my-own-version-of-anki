@@ -580,6 +580,17 @@ docker-compose up -d
 - pourquoi mettre des _init__py dans les packages / folders python ?
 - bien comprendre le forwardRef dans le component input
 
+# Notes
+Avec reload (F5 ou refresh)
+
+  1. Page reload → Zustand repart à zéro (state
+  initial : user=null, token=null) ❌
+  2. useEffect appelle initializeAuth()
+  3. initializeAuth() lit localStorage → trouve
+  token + user
+  4. Met à jour Zustand avec les données de
+  localStorage ✅
+
 
 # References
 - https://www.freecodecamp.org/news/deploy-fastapi-postgresql-app-on-render/
