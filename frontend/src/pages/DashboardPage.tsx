@@ -1,27 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { getFlashcards, deleteFlashcard } from '../services/flashcardsService'
-import type { FlashCard as FlashCardType } from '../types'
-import Button from '../components/Button'
-import Card from '../components/Card'
-import FlashCard from '../components/FlashCard'
+import { getCategories } from '../services/categoriesService'
+import type { FlashCard as FlashCardType, Category } from '../types'
+import { Button } from '../components/ui/button'
+import { Card, CardContent } from '../components/ui/card'
+import { BookOpen, Plus, FolderPlus, LogOut } from 'lucide-react'
+import DashboardStats from '../components/DashboardStats'
+import FlashcardSearchBar from '../components/FlashcardSearchBar'
+import FlashcardListItem from '../components/FlashcardListItem'
+import FlashcardViewDialog from '../components/FlashcardViewDialog'
 import CreateFlashcardModal from '../components/CreateFlashcardModal'
 import EditFlashcardModal from '../components/EditFlashcardModal'
 import CreateCategoryModal from '../components/CreateCategoryModal'
 
-/**
- * DashboardPage - Page principale de l'application
- *
- * Affiche :
- * - Header avec email de l'utilisateur et bouton logout
- * - Liste des flashcards
- * - États de loading et erreur
- */
 function DashboardPage() {
   const { user, logout } = useAuthStore()
 
-  // États pour les flashcards
+  // États pour les flashcards et catégories
   const [flashcards, setFlashcards] = useState<FlashCardType[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -29,81 +27,143 @@ function DashboardPage() {
   const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [editingFlashcard, setEditingFlashcard] = useState<FlashCardType | null>(null)
+  const [viewingFlashcard, setViewingFlashcard] = useState<FlashCardType | null>(null)
+
+  // États pour search et filtres
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
 
   /**
-   * Fonction pour charger les flashcards
-   * Peut être appelée au montage ET après création d'une nouvelle flashcard
+   * Charger les flashcards
    */
   const loadFlashcards = async () => {
     try {
       setIsLoading(true)
       setError('')
-
-      // Appel API pour récupérer les flashcards
       const data = await getFlashcards()
       setFlashcards(data)
     } catch (err: any) {
-      // Gérer l'erreur
-      const errorMessage =
-        err.response?.data?.detail || 'Failed to load flashcards'
+      const errorMessage = err.response?.data?.detail || 'Failed to load flashcards'
       setError(errorMessage)
     } finally {
-      // Toujours désactiver le loading (succès ou erreur)
       setIsLoading(false)
     }
   }
 
   /**
-   * useEffect pour charger les flashcards au montage du composant
+   * Charger les catégories
    */
-  useEffect(() => {
-    loadFlashcards()
-  }, []) // [] = s'exécute une seule fois au montage
-
-  /**
-   * Handler pour éditer une flashcard
-   */
-  const handleEdit = (flashcard: FlashCardType) => {
-    setEditingFlashcard(flashcard)
-    // Le modal d'édition s'ouvrira automatiquement car editingFlashcard !== null
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories()
+      setCategories(data)
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
   }
 
   /**
-   * Handler pour supprimer une flashcard
+   * Charger les données au montage
    */
+  useEffect(() => {
+    loadFlashcards()
+    loadCategories()
+  }, [])
+
+  /**
+   * Enrichir les flashcards avec l'objet category complet
+   */
+  const enrichedFlashcards = useMemo(() => {
+    return flashcards.map((flashcard) => ({
+      ...flashcard,
+      category: categories.find((cat) => cat.id === flashcard.category_id),
+    }))
+  }, [flashcards, categories])
+
+  /**
+   * Filtrer les flashcards selon search et category
+   */
+  const filteredFlashcards = useMemo(() => {
+    let filtered = enrichedFlashcards
+
+    // Filtre par catégorie
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(
+        (card) => card.category_id === parseInt(selectedCategory)
+      )
+    }
+
+    // Filtre par search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (card) =>
+          card.question.toLowerCase().includes(query) ||
+          card.answer.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [enrichedFlashcards, selectedCategory, searchQuery])
+
+  /**
+   * Calculer les stats
+   */
+  const stats = useMemo(() => {
+    const categoriesWithCount = categories.map((category) => ({
+      ...category,
+      count: flashcards.filter((card) => card.category_id === category.id).length,
+    }))
+
+    return {
+      totalCards: flashcards.length,
+      categoriesWithCount,
+    }
+  }, [flashcards, categories])
+
+  /**
+   * Handlers
+   */
+  const handleView = (flashcard: FlashCardType) => {
+    setViewingFlashcard(flashcard)
+  }
+
+  const handleEdit = (flashcard: FlashCardType) => {
+    setEditingFlashcard(flashcard)
+  }
+
   const handleDelete = async (id: number) => {
     try {
       await deleteFlashcard(id)
-      // Recharger la liste après suppression
       loadFlashcards()
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || 'Failed to delete flashcard'
+      const errorMessage = err.response?.data?.detail || 'Failed to delete flashcard'
       alert(`Error: ${errorMessage}`)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header / Navbar */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo / Titre */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Flashcards</h1>
-              <p className="text-sm text-gray-600">Welcome, {user?.email}</p>
+              <h1 className="text-2xl font-bold text-gray-900">My Own Flashcards App</h1>
+              <p className="text-sm text-gray-600 mt-1">Welcome, {user?.email}</p>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-3">
-              <Button onClick={() => setIsCategoryModalOpen(true)} variant="secondary" size="sm">
+              <Button
+                onClick={() => setIsCategoryModalOpen(true)}
+                variant="outline"
+                size="sm"
+              >
+                <FolderPlus className="mr-2 h-4 w-4" />
                 Create Category
               </Button>
-              <Button onClick={() => setIsFlashcardModalOpen(true)} size="sm">
-                Create Flashcard
-              </Button>
-              <Button onClick={logout} variant="secondary" size="sm">
+              <Button onClick={logout} variant="outline" size="sm">
+                <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </Button>
             </div>
@@ -112,51 +172,88 @@ function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* État de loading */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Loading state */}
         {isLoading && (
           <div className="text-center py-12">
             <p className="text-gray-600">Loading flashcards...</p>
           </div>
         )}
 
-        {/* État d'erreur */}
+        {/* Error state */}
         {error && !isLoading && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
 
-        {/* État vide (pas de flashcards) */}
-        {!isLoading && !error && flashcards.length === 0 && (
-          <Card className="text-center py-12">
-            <p className="text-gray-600 mb-4">No flashcards yet!</p>
-            <p className="text-sm text-gray-500">
-              Create your first flashcard to get started.
-            </p>
-          </Card>
+        {/* Stats */}
+        {!isLoading && !error && (
+          <DashboardStats
+            totalCards={stats.totalCards}
+            categoriesWithCount={stats.categoriesWithCount}
+          />
         )}
 
-        {/* Liste des flashcards */}
-        {!isLoading && !error && flashcards.length > 0 && (
+        {/* Flashcards Section */}
+        {!isLoading && !error && (
           <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Your Flashcards ({flashcards.length})
-              </h2>
-            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Your Flashcards
+            </h2>
 
-            {/* Grille de flashcards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {flashcards.map((card) => (
-                <FlashCard
-                  key={card.id}
-                  flashcard={card}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
+            {/* Search Bar */}
+            <FlashcardSearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              categories={categories}
+              onCreateFlashcard={() => setIsFlashcardModalOpen(true)}
+            />
+
+            {/* Empty state */}
+            {filteredFlashcards.length === 0 && flashcards.length === 0 && (
+              <Card className="text-center py-12">
+                <CardContent className="pt-6">
+                  <div className="flex justify-center mb-4">
+                    <BookOpen className="h-16 w-16 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 mb-4">No flashcards yet!</p>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Create your first flashcard to get started.
+                  </p>
+                  <Button onClick={() => setIsFlashcardModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Flashcard
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* No results from filters */}
+            {filteredFlashcards.length === 0 && flashcards.length > 0 && (
+              <Card className="text-center py-12">
+                <CardContent className="pt-6">
+                  <p className="text-gray-600">No flashcards match your filters.</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Flashcards List */}
+            {filteredFlashcards.length > 0 && (
+              <div className="space-y-4">
+                {filteredFlashcards.map((card) => (
+                  <FlashcardListItem
+                    key={card.id}
+                    flashcard={card}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -166,9 +263,7 @@ function DashboardPage() {
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         onSuccess={() => {
-          // Callback appelé après création réussie
-          // Pour l'instant, on ne fait rien car on n'affiche pas la liste des catégories
-          // Plus tard, tu pourras recharger la liste si tu l'affiches
+          loadCategories()
           console.log('Category created successfully!')
         }}
       />
@@ -183,6 +278,14 @@ function DashboardPage() {
         flashcard={editingFlashcard}
         onClose={() => setEditingFlashcard(null)}
         onSuccess={loadFlashcards}
+      />
+
+      <FlashcardViewDialog
+        flashcard={viewingFlashcard}
+        isOpen={viewingFlashcard !== null}
+        onClose={() => setViewingFlashcard(null)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
     </div>
   )

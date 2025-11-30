@@ -61,6 +61,7 @@ export interface FlashCard {
   user_id: number
   created_at: string
   updated_at: string
+  category?: Category // Optionnel, rempli par l'API si on inclut les relations
 }
 
 export interface FlashCardCreate {

@@ -5,23 +5,29 @@ import { flashcardSchema, type FlashcardFormData } from '../types/schemas'
 import { createFlashcard } from '../services/flashcardsService'
 import { getCategories } from '../services/categoriesService'
 import type { Category } from '../types'
-import Modal from './Modal'
-import Button from './Button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog'
+import { Button } from './ui/button'
+import { Textarea } from './ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
+import { Label } from './ui/label'
 
-/**
- * Props du composant CreateFlashcardModal
- */
 interface CreateFlashcardModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void // Callback appelé après création réussie
+  onSuccess: () => void
 }
 
-/**
- * CreateFlashcardModal - Modal pour créer une nouvelle flashcard
- *
- * Utilise react-hook-form + Zod pour la validation
- */
 function CreateFlashcardModal({
   isOpen,
   onClose,
@@ -29,19 +35,14 @@ function CreateFlashcardModal({
 }: CreateFlashcardModalProps) {
   const [categories, setCategories] = useState<Category[]>([])
   const [apiError, setApiError] = useState('')
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
 
-  /**
-   * Charger les catégories quand le modal s'ouvre
-   */
   useEffect(() => {
     if (isOpen) {
       loadCategories()
     }
   }, [isOpen])
 
-  /**
-   * Charger la liste des catégories
-   */
   const loadCategories = async () => {
     try {
       const data = await getCategories()
@@ -51,14 +52,12 @@ function CreateFlashcardModal({
     }
   }
 
-  /**
-   * Configuration react-hook-form avec validation Zod
-   */
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<FlashcardFormData>({
     resolver: zodResolver(flashcardSchema) as any,
     defaultValues: {
@@ -68,22 +67,14 @@ function CreateFlashcardModal({
     },
   })
 
-  /**
-   * Gérer la soumission du formulaire
-   */
   const onSubmit = async (data: FlashcardFormData) => {
     setApiError('')
 
     try {
       await createFlashcard(data)
-
-      // Réinitialiser le formulaire
       reset()
-
-      // Fermer le modal
+      setSelectedCategoryId('')
       onClose()
-
-      // Appeler le callback de succès (pour recharger la liste)
       onSuccess()
     } catch (err: any) {
       const errorMessage =
@@ -92,119 +83,115 @@ function CreateFlashcardModal({
     }
   }
 
-  /**
-   * Gérer la fermeture du modal
-   * Réinitialise le formulaire et les erreurs
-   */
   const handleClose = () => {
     reset()
     setApiError('')
+    setSelectedCategoryId('')
     onClose()
   }
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategoryId(value)
+    setValue('category_id', parseInt(value))
+  }
+
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Create Flashcard" size="md">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Message d'erreur API */}
-        {apiError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {apiError}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create Flashcard</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Error message */}
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {apiError}
+            </div>
+          )}
+
+          {/* Question */}
+          <div className="space-y-2">
+            <Label htmlFor="question">Question</Label>
+            <Textarea
+              id="question"
+              {...register('question')}
+              placeholder="What is React?"
+              rows={3}
+              disabled={isSubmitting}
+              className={errors.question ? 'border-red-500' : ''}
+            />
+            {errors.question && (
+              <p className="text-sm text-red-600">{errors.question.message}</p>
+            )}
           </div>
-        )}
 
-        {/* Question (Textarea) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Question
-          </label>
-          <textarea
-            {...register('question')}
-            className={`w-full px-4 py-2 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-              errors.question
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
-            rows={3}
-            placeholder="What is React?"
-            disabled={isSubmitting}
-          />
-          {errors.question && (
-            <p className="mt-1 text-sm text-red-600">{errors.question.message}</p>
-          )}
-        </div>
+          {/* Answer */}
+          <div className="space-y-2">
+            <Label htmlFor="answer">Answer</Label>
+            <Textarea
+              id="answer"
+              {...register('answer')}
+              placeholder="A JavaScript library for building user interfaces"
+              rows={4}
+              disabled={isSubmitting}
+              className={errors.answer ? 'border-red-500' : ''}
+            />
+            {errors.answer && (
+              <p className="text-sm text-red-600">{errors.answer.message}</p>
+            )}
+          </div>
 
-        {/* Answer (Textarea) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Answer
-          </label>
-          <textarea
-            {...register('answer')}
-            className={`w-full px-4 py-2 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-              errors.answer
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
-            rows={4}
-            placeholder="A JavaScript library for building user interfaces"
-            disabled={isSubmitting}
-          />
-          {errors.answer && (
-            <p className="mt-1 text-sm text-red-600">{errors.answer.message}</p>
-          )}
-        </div>
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={selectedCategoryId}
+              onValueChange={handleCategoryChange}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category_id && (
+              <p className="text-sm text-red-600">{errors.category_id.message}</p>
+            )}
+            {categories.length === 0 && !isSubmitting && (
+              <p className="text-sm text-gray-500">
+                No categories yet. Create one first!
+              </p>
+            )}
+          </div>
 
-        {/* Category (Select) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <select
-            {...register('category_id')}
-            className={`w-full px-4 py-2 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-              errors.category_id
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
-            disabled={isSubmitting}
-          >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          {errors.category_id && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.category_id.message}
-            </p>
-          )}
-
-          {/* Message si pas de catégories */}
-          {categories.length === 0 && !isSubmitting && (
-            <p className="mt-1 text-sm text-gray-500">
-              No categories yet. Create one first!
-            </p>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting}>
-            Create
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? 'Creating...' : 'Create'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 

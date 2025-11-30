@@ -3,24 +3,22 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { categorySchema, type CategoryFormData } from '../types/schemas'
 import { createCategory } from '../services/categoriesService'
-import Modal from './Modal'
-import Button from './Button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
 
-/**
- * Props du composant CreateCategoryModal
- */
 interface CreateCategoryModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void // Callback appelé après création réussie
+  onSuccess: () => void
 }
 
-/**
- * CreateCategoryModal - Modal pour créer une nouvelle catégorie
- *
- * Utilise react-hook-form + Zod pour la validation
- * Beaucoup plus simple que CreateFlashcardModal car un seul champ (name)
- */
 function CreateCategoryModal({
   isOpen,
   onClose,
@@ -28,9 +26,6 @@ function CreateCategoryModal({
 }: CreateCategoryModalProps) {
   const [apiError, setApiError] = useState('')
 
-  /**
-   * Configuration react-hook-form avec validation Zod
-   */
   const {
     register,
     handleSubmit,
@@ -43,22 +38,13 @@ function CreateCategoryModal({
     },
   })
 
-  /**
-   * Gérer la soumission du formulaire
-   */
   const onSubmit = async (data: CategoryFormData) => {
     setApiError('')
 
     try {
       await createCategory(data)
-
-      // Réinitialiser le formulaire
       reset()
-
-      // Fermer le modal
       onClose()
-
-      // Appeler le callback de succès (pour recharger la liste)
       onSuccess()
     } catch (err: any) {
       const errorMessage =
@@ -67,10 +53,6 @@ function CreateCategoryModal({
     }
   }
 
-  /**
-   * Gérer la fermeture du modal
-   * Réinitialise le formulaire et les erreurs
-   */
   const handleClose = () => {
     reset()
     setApiError('')
@@ -78,52 +60,56 @@ function CreateCategoryModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Create Category" size="sm">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Message d'erreur API */}
-        {apiError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {apiError}
-          </div>
-        )}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Create Category</DialogTitle>
+        </DialogHeader>
 
-        {/* Name (Input) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category Name
-          </label>
-          <input
-            {...register('name')}
-            type="text"
-            className={`w-full px-4 py-2 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-              errors.name
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
-            placeholder="Mathematics"
-            disabled={isSubmitting}
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Error message */}
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {apiError}
+            </div>
           )}
-        </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting}>
-            Create
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Category Name</Label>
+            <Input
+              id="name"
+              {...register('name')}
+              placeholder="Mathematics"
+              disabled={isSubmitting}
+              className={errors.name ? 'border-red-500' : ''}
+            />
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? 'Creating...' : 'Create'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
