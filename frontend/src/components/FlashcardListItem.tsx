@@ -16,15 +16,15 @@ interface FlashcardListItemProps {
   onDelete: (id: number) => void
 }
 
-// Fonction pour obtenir une couleur basée sur le nom de la catégorie
+// Fonction pour obtenir une couleur basée sur le nom de la catégorie (style épuré)
 const getCategoryColor = (categoryName: string) => {
   const colors = [
-    'bg-blue-100 text-blue-700 border-blue-300',
-    'bg-purple-100 text-purple-700 border-purple-300',
-    'bg-green-100 text-green-700 border-green-300',
-    'bg-orange-100 text-orange-700 border-orange-300',
-    'bg-pink-100 text-pink-700 border-pink-300',
-    'bg-indigo-100 text-indigo-700 border-indigo-300',
+    'bg-blue-50 text-blue-600 border-blue-200',
+    'bg-purple-50 text-purple-600 border-purple-200',
+    'bg-green-50 text-green-600 border-green-200',
+    'bg-orange-50 text-orange-600 border-orange-200',
+    'bg-pink-50 text-pink-600 border-pink-200',
+    'bg-indigo-50 text-indigo-600 border-indigo-200',
   ]
 
   // Hash simple du nom pour avoir toujours la même couleur pour la même catégorie
@@ -69,23 +69,29 @@ function FlashcardListItem({
 
   return (
     <Card
-      className="hover:shadow-md transition-shadow cursor-pointer"
+      className="border border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white hover:scale-[1.01] group relative overflow-hidden"
       onClick={() => onView(flashcard)}
     >
-      <CardContent className="p-4">
+      {/* Accent bar on the left */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      <CardContent>
         <div className="flex items-start justify-between gap-4">
           {/* Contenu principal */}
           <div className="flex-1 min-w-0">
             {/* Question */}
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-base font-semibold text-gray-900 mb-1.5 group-hover:text-gray-950 transition-colors">
               {flashcard.question}
             </h3>
 
             {/* Preview de la réponse */}
-            <p className="text-sm text-gray-600 mb-3">{answerPreview}</p>
+            <p className="text-sm text-gray-500 mb-2 leading-relaxed">{answerPreview}</p>
 
             {/* Footer: Date */}
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 flex items-center gap-1">
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               Created {formatDate(flashcard.created_at)}
             </p>
           </div>

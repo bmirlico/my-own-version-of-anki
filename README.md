@@ -569,6 +569,11 @@ docker-compose up -d
 7. Déployer sur VPS
 8. Configurer CI/CD
 
+## TODO
+- finish migration to shadcn UI (field and form logic and then suppress button, modal, input former components)
+- enhance flashcard view to take code format, and not only text (perhaps .md)
+- start deploy on VPS
+
 # Questions
 - class Config: from_attributes: true ?
 - implement later httonly cookie in front and back for secure auth: https://fastapitutorial.medium.com/fastapi-securing-jwt-token-with-httponly-cookie-47e0139b8dde
@@ -582,15 +587,16 @@ docker-compose up -d
 - pourquoi besoin de faire ça en react:  const data = await getFlashcards(); setFlashcards(data)
 
 # Notes
-Avec reload (F5 ou refresh)
+- Zustand:
+  - Avec reload (F5 ou refresh)
+    1. Page reload → Zustand repart à zéro (state
+    initial : user=null, token=null) ❌
+    2. useEffect appelle initializeAuth()
+    3. initializeAuth() lit localStorage → trouve
+    token + user
+    4. Met à jour Zustand avec les données de
+    localStorage ✅
 
-  1. Page reload → Zustand repart à zéro (state
-  initial : user=null, token=null) ❌
-  2. useEffect appelle initializeAuth()
-  3. initializeAuth() lit localStorage → trouve
-  token + user
-  4. Met à jour Zustand avec les données de
-  localStorage ✅
 
 
 # References

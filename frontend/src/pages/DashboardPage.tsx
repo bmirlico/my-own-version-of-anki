@@ -145,26 +145,43 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Own Flashcards App</h1>
-              <p className="text-sm text-gray-600 mt-1">Welcome, {user?.email}</p>
+      <header className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <BookOpen className="h-5 w-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  My Own Flashcards App
+                </h1>
+              </div>
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <p className="text-xs text-gray-600 font-medium">{user?.email}</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 onClick={() => setIsCategoryModalOpen(true)}
                 variant="outline"
                 size="sm"
+                className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-gray-300 hover:border-gray-400 transition-all"
               >
                 <FolderPlus className="mr-2 h-4 w-4" />
-                Create Category
+                <span className="hidden sm:inline">Create Category</span>
+                <span className="sm:hidden">Category</span>
               </Button>
-              <Button onClick={logout} variant="outline" size="sm">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+              <Button 
+                onClick={logout} 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              >
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
@@ -172,17 +189,18 @@ function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Loading state */}
+        {/* TODO: add spinner instead */}
         {isLoading && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading flashcards...</p>
+          <div className="text-center py-20">
+            <p className="text-gray-400 text-sm">Loading flashcards...</p>
           </div>
         )}
 
         {/* Error state */}
         {error && !isLoading && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg mb-8 text-sm">
             {error}
           </div>
         )}
@@ -198,7 +216,7 @@ function DashboardPage() {
         {/* Flashcards Section */}
         {!isLoading && !error && (
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-8">
               Your Flashcards
             </h2>
 
@@ -214,30 +232,31 @@ function DashboardPage() {
 
             {/* Empty state */}
             {filteredFlashcards.length === 0 && flashcards.length === 0 && (
-              <Card className="text-center py-12">
-                <CardContent className="pt-6">
-                  <div className="flex justify-center mb-4">
-                    <BookOpen className="h-16 w-16 text-gray-400" />
+              <div className="text-center py-10 animate-in fade-in duration-500">
+                <div className="flex justify-center mb-6">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
+                    <BookOpen className="h-12 w-12 text-gray-400" />
                   </div>
-                  <p className="text-gray-600 mb-4">No flashcards yet!</p>
-                  <p className="text-sm text-gray-500 mb-6">
-                    Create your first flashcard to get started.
-                  </p>
-                  <Button onClick={() => setIsFlashcardModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Flashcard
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No flashcards yet!</h3>
+                <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">
+                  Create your first flashcard to get started on your learning journey.
+                </p>
+                <Button 
+                  onClick={() => setIsFlashcardModalOpen(true)} 
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Flashcard
+                </Button>
+              </div>
             )}
 
             {/* No results from filters */}
             {filteredFlashcards.length === 0 && flashcards.length > 0 && (
-              <Card className="text-center py-12">
-                <CardContent className="pt-6">
-                  <p className="text-gray-600">No flashcards match your filters.</p>
-                </CardContent>
-              </Card>
+              <div className="text-center py-20 animate-in fade-in duration-300">
+                <p className="text-sm text-gray-500">No flashcards match your filters.</p>
+              </div>
             )}
 
             {/* Flashcards List */}
