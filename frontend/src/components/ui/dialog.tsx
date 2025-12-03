@@ -3,6 +3,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Separator } from "./separator"
 
 function Dialog({
   ...props
@@ -80,11 +81,14 @@ function DialogContent({
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
-      {...props}
-    />
+    <>
+      <div
+        data-slot="dialog-header"
+        className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+        {...props}
+      />
+      <Separator />
+    </>
   )
 }
 

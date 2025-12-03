@@ -572,6 +572,7 @@ docker-compose up -d
 ## TODO
 - finish migration to shadcn UI (field and form logic and then suppress button, modal, input former components)
 - enhance flashcard view to take code format, and not only text (perhaps .md)
+- enhance modal, and add toast (sonner)
 - start deploy on VPS
 
 # Questions

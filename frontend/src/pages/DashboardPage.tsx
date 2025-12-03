@@ -5,7 +5,7 @@ import { getCategories } from '../services/categoriesService'
 import type { FlashCard as FlashCardType, Category } from '../types'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
-import { BookOpen, Plus, FolderPlus, LogOut } from 'lucide-react'
+import { BookOpen, Plus, Sparkles, TrendingUp } from 'lucide-react'
 import DashboardStats from '../components/DashboardStats'
 import FlashcardSearchBar from '../components/FlashcardSearchBar'
 import FlashcardListItem from '../components/FlashcardListItem'
@@ -143,45 +143,49 @@ function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+      {/* Modern Header with gradient */}
+      <header className="relative border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left side - Logo, Title and User */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <BookOpen className="h-5 w-5 text-white" />
+                  <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                   My Own Flashcards App
                 </h1>
               </div>
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full">
+
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-200">
                 <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
                 <p className="text-xs text-gray-600 font-medium">{user?.email}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right side - Buttons */}
+            <div className="flex items-center gap-3">
               <Button
                 onClick={() => setIsCategoryModalOpen(true)}
-                variant="outline"
                 size="sm"
-                className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-gray-300 hover:border-gray-400 transition-all"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 border-none"
               >
-                <FolderPlus className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Create Category</span>
-                <span className="sm:hidden">Category</span>
+                <Plus className="mr-2 h-4 w-4" />
+                New Category
               </Button>
-              <Button 
-                onClick={logout} 
-                variant="ghost" 
+              <Button
+                onClick={logout}
                 size="sm"
-                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                className="bg-white hover:bg-red-50 border-2 border-gray-300 hover:border-red-400 text-gray-700 hover:text-red-600 font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
               >
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
+                Logout
               </Button>
             </div>
           </div>
@@ -189,19 +193,21 @@ function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Loading state */}
-        {/* TODO: add spinner instead */}
+        {/* TODO: use spinner instead */}
         {isLoading && (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-sm">Loading flashcards...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            <p className="text-gray-600 mt-4">Loading your flashcards...</p>
           </div>
         )}
 
         {/* Error state */}
         {error && !isLoading && (
-          <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg mb-8 text-sm">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-8">
+            <p className="font-medium">Error</p>
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
@@ -216,9 +222,17 @@ function DashboardPage() {
         {/* Flashcards Section */}
         {!isLoading && !error && (
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8">
-              Your Flashcards
-            </h2>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <BookOpen className="h-6 w-6 text-blue-600" />
+                  Your Learning Journey
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {filteredFlashcards.length} {filteredFlashcards.length === 1 ? 'card' : 'cards'} to review
+                </p>
+              </div>
+            </div>
 
             {/* Search Bar */}
             <FlashcardSearchBar
@@ -230,33 +244,47 @@ function DashboardPage() {
               onCreateFlashcard={() => setIsFlashcardModalOpen(true)}
             />
 
-            {/* Empty state */}
+            {/* Empty state - No cards at all */}
             {filteredFlashcards.length === 0 && flashcards.length === 0 && (
-              <div className="text-center py-10 animate-in fade-in duration-500">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
-                    <BookOpen className="h-12 w-12 text-gray-400" />
+              <Card className="border-2 border-dashed border-gray-300 bg-white/50 backdrop-blur-sm">
+                <CardContent className="py-20 text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-2xl opacity-30 animate-pulse" />
+                      <div className="relative p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl">
+                        <BookOpen className="h-20 w-20 text-blue-500" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No flashcards yet!</h3>
-                <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">
-                  Create your first flashcard to get started on your learning journey.
-                </p>
-                <Button 
-                  onClick={() => setIsFlashcardModalOpen(true)} 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Flashcard
-                </Button>
-              </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Start Your Learning Journey</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    Create your first flashcard and begin mastering new concepts. Learning has never been this beautiful!
+                  </p>
+                  <Button
+                    onClick={() => setIsFlashcardModalOpen(true)}
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
+                  >
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Create Your First Flashcard
+                  </Button>
+                </CardContent>
+              </Card>
             )}
 
             {/* No results from filters */}
             {filteredFlashcards.length === 0 && flashcards.length > 0 && (
-              <div className="text-center py-20 animate-in fade-in duration-300">
-                <p className="text-sm text-gray-500">No flashcards match your filters.</p>
-              </div>
+              <Card className="bg-white/50 backdrop-blur-sm">
+                <CardContent className="py-16 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="h-16 w-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No cards found</h3>
+                  <p className="text-sm text-gray-600">Try adjusting your search or filters</p>
+                </CardContent>
+              </Card>
             )}
 
             {/* Flashcards List */}
@@ -283,7 +311,6 @@ function DashboardPage() {
         onClose={() => setIsCategoryModalOpen(false)}
         onSuccess={() => {
           loadCategories()
-          console.log('Category created successfully!')
         }}
       />
 

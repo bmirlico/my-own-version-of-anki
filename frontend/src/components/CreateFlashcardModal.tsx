@@ -110,39 +110,8 @@ function CreateFlashcardModal({
             </div>
           )}
 
-          {/* Question */}
-          <div className="space-y-2">
-            <Label htmlFor="question">Question</Label>
-            <Textarea
-              id="question"
-              {...register('question')}
-              placeholder="What is React?"
-              rows={3}
-              disabled={isSubmitting}
-              className={errors.question ? 'border-red-500' : ''}
-            />
-            {errors.question && (
-              <p className="text-sm text-red-600">{errors.question.message}</p>
-            )}
-          </div>
-
-          {/* Answer */}
-          <div className="space-y-2">
-            <Label htmlFor="answer">Answer</Label>
-            <Textarea
-              id="answer"
-              {...register('answer')}
-              placeholder="A JavaScript library for building user interfaces"
-              rows={4}
-              disabled={isSubmitting}
-              className={errors.answer ? 'border-red-500' : ''}
-            />
-            {errors.answer && (
-              <p className="text-sm text-red-600">{errors.answer.message}</p>
-            )}
-          </div>
-
           {/* Category */}
+          {/* TODO: enable creation here and delete button new category */}
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select
@@ -168,6 +137,38 @@ function CreateFlashcardModal({
               <p className="text-sm text-gray-500">
                 No categories yet. Create one first!
               </p>
+            )}
+          </div>
+
+          {/* Question */}
+          <div className="space-y-2">
+            <Label htmlFor="question">Question</Label>
+            <Textarea
+              id="question"
+              {...register('question')}
+              placeholder="What is React?"
+              rows={3}
+              disabled={isSubmitting}
+              className={errors.question ? 'border-red-500' : ''}
+            />
+            {errors.question && (
+              <p className="text-sm text-red-600">{errors.question.message}</p>
+            )}
+          </div>
+
+          {/* Answer */}
+          <div className="space-y-2">
+            <Label htmlFor="answer">Answer</Label>
+            <Textarea
+              id="answer"
+              {...register('answer')}
+              placeholder="A JavaScript library for building user interfaces"
+              rows={10}
+              disabled={isSubmitting}
+              className={errors.answer ? 'border-red-500' : ''}
+            />
+            {errors.answer && (
+              <p className="text-sm text-red-600">{errors.answer.message}</p>
             )}
           </div>
 
