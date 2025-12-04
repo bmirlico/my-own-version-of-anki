@@ -61,6 +61,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 
+# test
 def decode_access_token(token: str) -> Optional[str]:
     """
     Décode un JWT token et retourne le user_id
